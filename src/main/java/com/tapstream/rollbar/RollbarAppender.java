@@ -3,6 +3,7 @@ package com.tapstream.rollbar;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONException;
@@ -22,8 +23,9 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
     private String apiKey;
     private String environment;
     private String rollbarContext;
+    private Map<String, String> additionalFields = new HashMap<>();
     private boolean async = true;
-    private IHttpRequester httpRequester = new HttpRequester();
+    private IHttpRequester httpRequester = new AsyncHttpRequester();
     
     public RollbarAppender(){
         try {
@@ -43,6 +45,17 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
         } catch (MalformedURLException e) {
             addError("Error setting url", e);
         }
+    }
+
+    public void addAdditionalField(String keyValue) {
+        String[] parts = keyValue.split("=", 2);
+        if (parts.length != 2) {
+            addError(String.format(
+                    "additionalField must be in the format key=value, but found [%s]",
+                    keyValue));
+            return;
+        }
+        additionalFields.put(parts[0], parts[1]);
     }
 
     public void setApiKey(String apiKey) {
@@ -88,7 +101,7 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
         }
    
         try {
-            payloadBuilder = new NotifyBuilder(apiKey, environment, rollbarContext);
+            payloadBuilder = new NotifyBuilder(apiKey, environment, rollbarContext, additionalFields);
         } catch (JSONException e) {
             addError("Error building NotifyBuilder", e);
             error = true;

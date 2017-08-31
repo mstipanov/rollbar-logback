@@ -4,7 +4,7 @@
 	<groupId>com.tapstream</groupId>
 	<artifactId>rollbar-logback</artifactId>
 	<packaging>jar</packaging>
-	<version>0.1.5-SNAPSHOT</version>
+	<version>0.1.5-ocg-SNAPSHOT</version>
 
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>A Rollbar logback appender that includes out of the box support for servlets</description>
@@ -44,6 +44,8 @@
 	</developers>
 
 	<properties>
+		<prometheus.version>0.0.21</prometheus.version>
+
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jdk.target>1.7</jdk.target>
 		<jdk.source>1.7</jdk.source>
@@ -168,6 +170,17 @@
 			<artifactId>json</artifactId>
 			<version>20140107</version>
 		</dependency>
+		<dependency>
+			<groupId>org.asynchttpclient</groupId>
+			<artifactId>async-http-client</artifactId>
+			<version>2.0.35</version>
+		</dependency>
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient</artifactId>
+			<version>${prometheus.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
