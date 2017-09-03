@@ -24,7 +24,9 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
     private String rollbarContext;
     private boolean async = true;
     private IHttpRequester httpRequester = new HttpRequester();
-    
+    private String serverName;
+    private String serverIp;
+
     public RollbarAppender(){
         try {
             this.url = new URL("https://api.rollbar.com/api/1/item/");
@@ -61,6 +63,14 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
         this.rollbarContext = context;
     }
 
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
+    public void setServerIp(String serverIp) {
+        this.serverIp = serverIp;
+    }
+
     @Override
     public void start() {
         boolean error = false;
@@ -82,13 +92,13 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
             addError("No apiKey set for the appender named [" + getName() + "].");
             error = true;
         }
-        if (this.environment == null || this.environment.isEmpty()) {
+        if (this.environment == null || this.environment.isEmpty() || this.environment.endsWith("_IS_UNDEFINED")) {
             addError("No environment set for the appender named [" + getName() + "].");
             error = true;
         }
    
         try {
-            payloadBuilder = new NotifyBuilder(apiKey, environment, rollbarContext);
+            payloadBuilder = new NotifyBuilder(apiKey, environment, serverName, serverIp, rollbarContext);
         } catch (JSONException e) {
             addError("Error building NotifyBuilder", e);
             error = true;

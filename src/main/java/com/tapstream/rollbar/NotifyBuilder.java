@@ -27,12 +27,12 @@ public class NotifyBuilder {
     private final JSONObject notifierData;
     private final JSONObject serverData;
 
-    public NotifyBuilder(String accessToken, String environment, String rollbarContext) throws JSONException {
+    public NotifyBuilder(String accessToken, String environment, String serverName, String serverIp, String rollbarContext) throws JSONException {
         this.accessToken = accessToken;
         this.environment = environment;
         this.rollbarContext = rollbarContext;
         this.notifierData = getNotifierData();
-        this.serverData = getServerData();
+        this.serverData = getServerData(serverName, serverIp);
     }
     
 
@@ -204,12 +204,10 @@ public class NotifyBuilder {
         return notifier;
     }
 
-    private JSONObject getServerData() throws JSONException {
+    private JSONObject getServerData(String serverName, String serverIp) throws JSONException {
         try {
-            InetAddress localhost = InetAddress.getLocalHost();
-
-            String host = localhost.getHostName();
-            String ip = localhost.getHostAddress();
+            String host = getHostName(serverName);
+            String ip = getHostAddress(serverIp);
 
             JSONObject notifier = new JSONObject();
             notifier.put("host", host);
@@ -218,6 +216,22 @@ public class NotifyBuilder {
         } catch (UnknownHostException e) {
             return null;
         }
+    }
+
+    private String getHostName(String serverName) throws UnknownHostException {
+        if (null != serverName && !serverName.endsWith("_IS_UNDEFINED")) {
+            return serverName;
+        }
+        InetAddress localhost = InetAddress.getLocalHost();
+        return localhost.getHostName();
+    }
+
+    private String getHostAddress(String serverIp) throws UnknownHostException {
+        if (null != serverIp && !serverIp.endsWith("_IS_UNDEFINED")) {
+            return serverIp;
+        }
+        InetAddress localhost = InetAddress.getLocalHost();
+        return localhost.getHostAddress();
     }
 
     private JSONObject createTrace(Throwable throwable) throws JSONException {
