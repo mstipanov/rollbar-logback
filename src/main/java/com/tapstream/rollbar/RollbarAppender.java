@@ -3,7 +3,6 @@ package com.tapstream.rollbar;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONException;
@@ -23,9 +22,10 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
     private String apiKey;
     private String environment;
     private String rollbarContext;
-    private Map<String, String> additionalFields = new HashMap<>();
     private boolean async = true;
-    private IHttpRequester httpRequester = new AsyncHttpRequester();
+    private IHttpRequester httpRequester = new HttpRequester();
+    private String serverName;
+    private String serverIp;
     
     public RollbarAppender(){
         try {
@@ -47,17 +47,6 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
         }
     }
 
-    public void addAdditionalField(String keyValue) {
-        String[] parts = keyValue.split("=", 2);
-        if (parts.length != 2) {
-            addError(String.format(
-                    "additionalField must be in the format key=value, but found [%s]",
-                    keyValue));
-            return;
-        }
-        additionalFields.put(parts[0], parts[1]);
-    }
-
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
     }
@@ -72,6 +61,14 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
     
     public void setRollbarContext(String context){
         this.rollbarContext = context;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
+    public void setServerIp(String serverIp) {
+        this.serverIp = serverIp;
     }
 
     @Override
@@ -95,13 +92,13 @@ public class RollbarAppender extends UnsynchronizedAppenderBase<ILoggingEvent>{
             addError("No apiKey set for the appender named [" + getName() + "].");
             error = true;
         }
-        if (this.environment == null || this.environment.isEmpty()) {
+        if (this.environment == null || this.environment.isEmpty() || this.environment.endsWith("_IS_UNDEFINED")) {
             addError("No environment set for the appender named [" + getName() + "].");
             error = true;
         }
    
         try {
-            payloadBuilder = new NotifyBuilder(apiKey, environment, rollbarContext, additionalFields);
+            payloadBuilder = new NotifyBuilder(apiKey, environment, serverName, serverIp, rollbarContext);
         } catch (JSONException e) {
             addError("Error building NotifyBuilder", e);
             error = true;

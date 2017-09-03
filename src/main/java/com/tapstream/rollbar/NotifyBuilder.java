@@ -1,15 +1,15 @@
 package com.tapstream.rollbar;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class NotifyBuilder {
 
@@ -27,12 +27,12 @@ public class NotifyBuilder {
     private final JSONObject notifierData;
     private final JSONObject serverData;
 
-    public NotifyBuilder(String accessToken, String environment, String rollbarContext, Map<String, String> context) throws JSONException {
+    public NotifyBuilder(String accessToken, String environment, String serverName, String serverIp, String rollbarContext) throws JSONException {
         this.accessToken = accessToken;
         this.environment = environment;
         this.rollbarContext = rollbarContext;
         this.notifierData = getNotifierData();
-        this.serverData = getServerData(context);
+        this.serverData = getServerData(serverName, serverIp);
     }
 
 
@@ -204,10 +204,10 @@ public class NotifyBuilder {
         return notifier;
     }
 
-    private JSONObject getServerData(Map<String, String> context) throws JSONException {
+    private JSONObject getServerData(String serverName, String serverIp) throws JSONException {
         try {
-            String host = getHostName(context);
-            String ip = getHostAddress(context);
+            String host = getHostName(serverName);
+            String ip = getHostAddress(serverIp);
 
             JSONObject notifier = new JSONObject();
             notifier.put("host", host);
@@ -218,22 +218,20 @@ public class NotifyBuilder {
         }
     }
 
-    private String getHostAddress(Map<String, String> context) throws UnknownHostException {
-        String serverIp = context.get("server.ip");
-        if (null != serverIp && !serverIp.endsWith("_IS_UNDEFINED")) {
-            return serverIp;
-        }
-        InetAddress localhost = InetAddress.getLocalHost();
-        return localhost.getHostAddress();
-    }
-
-    private String getHostName(Map<String, String> context) throws UnknownHostException {
-        String serverName = context.get("server.name");
+    private String getHostName(String serverName) throws UnknownHostException {
         if (null != serverName && !serverName.endsWith("_IS_UNDEFINED")) {
             return serverName;
         }
         InetAddress localhost = InetAddress.getLocalHost();
         return localhost.getHostName();
+    }
+
+    private String getHostAddress(String serverIp) throws UnknownHostException {
+        if (null != serverIp && !serverIp.endsWith("_IS_UNDEFINED")) {
+            return serverIp;
+        }
+        InetAddress localhost = InetAddress.getLocalHost();
+        return localhost.getHostAddress();
     }
 
     private JSONObject createTrace(Throwable throwable) throws JSONException {
