@@ -22,12 +22,12 @@ public class NotifyBuilder {
     private final JSONObject notifierData;
     private final JSONObject serverData;
 
-    public NotifyBuilder(String accessToken, String environment, String rollbarContext) throws JSONException, UnknownHostException {
+    public NotifyBuilder(String accessToken, String environment, String rollbarContext, String serverName, String serverIp) throws JSONException {
         this.accessToken = accessToken;
         this.environment = environment;
         this.rollbarContext = rollbarContext;
         this.notifierData = getNotifierData();
-        this.serverData = getServerData();
+        this.serverData = getServerData(serverName, serverIp);
     }
     
 
@@ -68,7 +68,9 @@ public class NotifyBuilder {
 
         data.put("custom", customData);
         data.put("client", buildClient(context));
-        data.put("server", serverData);
+        if (serverData != null) {
+            data.put("server", serverData);
+        }
         data.put("notifier", notifierData);
         payload.put("data", data);
 
@@ -166,17 +168,34 @@ public class NotifyBuilder {
         return notifier;
     }
 
-    private JSONObject getServerData() throws JSONException, UnknownHostException {
+    private JSONObject getServerData(String serverName, String serverIp) throws JSONException {
+        try {
+            String host = getHostName(serverName);
+            String ip = getHostAddress(serverIp);
 
+            JSONObject notifier = new JSONObject();
+            notifier.put("host", host);
+            notifier.put("ip", ip);
+            return notifier;
+        } catch (UnknownHostException e) {
+            return null;
+        }
+    }
+
+    private String getHostName(String serverName) throws UnknownHostException {
+        if (null != serverName && !serverName.endsWith("_IS_UNDEFINED")) {
+            return serverName;
+        }
         InetAddress localhost = InetAddress.getLocalHost();
+        return localhost.getHostName();
+    }
 
-        String host = localhost.getHostName();
-        String ip = localhost.getHostAddress();
-
-        JSONObject notifier = new JSONObject();
-        notifier.put("host", host);
-        notifier.put("ip", ip);
-        return notifier;
+    private String getHostAddress(String serverIp) throws UnknownHostException {
+        if (null != serverIp && !serverIp.endsWith("_IS_UNDEFINED")) {
+            return serverIp;
+        }
+        InetAddress localhost = InetAddress.getLocalHost();
+        return localhost.getHostAddress();
     }
 
     private JSONObject createTrace(Throwable throwable) throws JSONException {

@@ -11,7 +11,7 @@ account: sign up for an account [here](https://rollbar.com/signup/).
 Logback
 ------------
 
-	<appender name="ROLLBAR" class="com.tapstream.rollbar.logback.RollbarAppender">
+	<appender name="ROLLBAR" class="com.tapstream.rollbar.RollbarAppender">
         <apiKey>[YOUR APIKEY HERE]</apiKey>
         <environment>local</environment>
     </appender>
@@ -48,6 +48,28 @@ portion of the Rollbar item from a ServletRequest. The filter will include:
 * Headers
 * Parameters
 
+
+Docker Support
+---------------
+Inline:
+
+    <appender name="ROLLBAR" class="com.tapstream.rollbar.RollbarAppender">
+        <apiKey>my-key</apiKey>
+        <environment>my-app</environment>
+        <serverIp>1.2.3.4</serverIp>
+        <serverName>my-machine</serverName>
+    </appender>
+
+Environment variables:
+
+    <appender name="ROLLBAR" class="com.tapstream.rollbar.RollbarAppender">
+        <apiKey>${ROLLBAR_API_KEY}</apiKey>
+        <environment>my-app</environment>
+        <serverIp>${HOST_LOCAL_IP}</serverIp>
+        <serverName>${HOST_LOCAL}</serverName>
+    </appender>
+
+If environment variable (serverIp or serverName) is not defined, old implementation will be used.
 
 Acknowledgements
 --------------
